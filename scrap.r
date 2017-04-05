@@ -9,4 +9,4 @@ members <- data.frame(
     html_text()
   ) %>% 
   filter(length(School) > 0) %>% #Drop blank td elements %>% 
-  mutate(School = str_extract(School, "^[^(]+"))
+  mutate(School = str_replace(str_extract(School, "^[^(]+"), "^\\s+", ""))
