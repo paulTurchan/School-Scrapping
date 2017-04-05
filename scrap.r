@@ -8,5 +8,5 @@ members <- data.frame(
     html_nodes("#ctl00_secaboutaauwidecph_main a") %>%
     html_text()
   ) %>% 
-  filter(length(School) > 0) %>% #Drop blank td elements %>% 
-  mutate(School = str_replace(str_extract(School, "^[^(]+"), "^\\s+", ""))
+  filter(School != '') %>% #Drop blank td elements %>% 
+  mutate(School = str_trim(str_extract(School, "^[^(]+")))
