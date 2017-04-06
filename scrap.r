@@ -8,9 +8,11 @@ aau_members <- data.frame(
     html_nodes("#ctl00_secaboutaauwidecph_main a") %>%
     html_text()
   ) %>% 
-  filter(School != '') %>% #Drop blank td elements %>% 
+  filter(School != "") %>% #Drop blank td elements %>% 
   mutate(School = str_trim(str_extract(School, "^[^(]+"))) %>%  #Remove year and trailing space
   arrange(School)
+
+#Sport Affiliations
 
 #NCAA Members & Conferences
 ncaa_members <- read_html("http://web1.ncaa.org/onlineDir/exec2/divisionListing?sortOrder=0&division=All") %>% 
@@ -19,11 +21,36 @@ ncaa_members <- read_html("http://web1.ncaa.org/onlineDir/exec2/divisionListing?
 
 ncaa_members <- ncaa_members[[1]] %>% #Transform scrap to data frame
   dplyr::rename(School = Institution) %>% 
-  filter(!(School %in% c('1 - DI CA Test', '2 - DII CA Test', '3 - DIII CA Test'))) %>% #Drop test records
+  filter(!(School %in% c("1 - DI CA Test", "2 - DII CA Test", "3 - DIII CA Test"))) %>% #Drop test records
   select(-State, -`Reclass Division`) %>% 
   arrange(School)
 
 ncaa_conferences <- ncaa_members %>%
   mutate(Division = str_trim(str_extract(Division, "^[^-]+"))) %>% #Clean divisions to remove FCS or FBS suffixes
   group_by(Conference, Division) %>% 
-  summarise(Count = n())
+  summarise(Count = n()) %>% 
+  arrange(Conference)
+
+#NAIA Members
+naia_translation <- data.frame(
+  Conference = c("River State Conference", "Appalachian Athletic Conference", "Wolverine–Hoosier Athletic Conference", "Golden State Athletic Conference", "Sun Conference", "Heart of America Athletic Conference", "Sooner Athletic Conference", "North Star Athletic Association", "California Pacific Conference", "Kansas Collegiate Athletic Conference", "Crossroads League", "Southern States Athletic Conference", "Great Plains Athletic Conference", "Chicagoland Collegiate Athletic Conference", "Mid-South Conference", "Frontier Conference", "American Midwest Conference", "Association of Independent Institutions", "Cascade Collegiate Conference", "Gulf Coast Athletic Conference", "Red River Athletic Conference"),
+  Abbreviation = c("RSC", "AAC", "WHAC", "GSAC", "TSC", "HAAC", "Sooner", "North Star", "Cal Pac", "KCAC", "Crossroads", "SSAC", "GPAC", "CCAC", "Mid-South", "Frontier", "Am. Midwest", "A.I.I.", "Cascade", "GCAC", "Red River")
+)
+
+naia_translation[] <- lapply(naia_translation, as.character)
+
+naia_members <- read_html("http://www.playnaia.org/remote/schools.php?viewAll=") %>% 
+  html_nodes("table") %>% 
+  html_table(fill = T, header = T)
+
+naia_members <- naia_members[[1]] %>% 
+  mutate(School = str_trim(str_extract(School, "([^\n]*)\n"))) %>% #Retain string before new line (\n)
+  rename(Abbreviation = Conference) %>% #Prepare for translation
+  left_join(naia_translation, by = c("Abbreviation" = "Abbreviation")) %>% #Join in full conference names
+  select(-(Location:Enrollment)) %>% 
+  arrange(School)
+
+naia_conferences <- naia_members %>%
+  group_by(Conference) %>% 
+  summarise(Count = n()) %>% 
+  arrange(Conference)
