@@ -1,6 +1,7 @@
 library(rvest)
 library(dplyr)
 require(stringr)
+library(jsonlite)
 
 #Association of American Universities
 aau_members <- data.frame(
@@ -54,3 +55,22 @@ naia_conferences <- naia_members %>%
   group_by(Conference) %>% 
   summarise(Count = n()) %>% 
   arrange(Conference)
+
+#NJCAA
+# njcaa_regions <- read_html("http://www.njcaa.org/member_colleges/Organization_of_NJCAA_Regions") %>% 
+#   html_nodes(".njcaaTable") %>% 
+#   html_table()
+# 
+# njcaa_regions <- njcaa_regions[[1]] %>% 
+#   rename(Abbreviation = X1, Region = X2)
+
+njcaa_members <- fromJSON("http://api.njcaa.org//Common/GetCollegesByAcademicYearsSportDivisionRegionAndState/13/All/All/All/All") %>%
+  rename(School = Name) %>% 
+  mutate(Region = paste("Region ", Region, sep = '')) %>% 
+  select(School, Region) %>% 
+  arrange(School)
+
+njcaa_regions <- njcaa_members %>%
+  group_by(Region) %>% 
+  summarise(Count = n()) %>% 
+  arrange(Region)
