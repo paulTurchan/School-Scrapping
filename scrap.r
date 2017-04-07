@@ -1,7 +1,15 @@
 library(rvest)
 library(dplyr)
-require(stringr)
+library(stringr)
 library(jsonlite)
+library(httr)
+library(fuzzyjoin)
+
+#IPEDS
+GET("https://nces.ed.gov/ipeds/datacenter/data/HD2015.zip", write_disk("ipeds.zip", overwrite=TRUE), progress()) #Download and write IPEDS (institutional characteristics) data
+ipeds <- read.csv(unzip("ipeds.zip")[1], stringsAsFactors = F) %>%
+  rename(IPEDS_ID = UNITID, School = INSTNM) %>%
+  select(IPEDS_ID, School)
 
 #Association of American Universities
 aau_members <- data.frame(
@@ -11,7 +19,6 @@ aau_members <- data.frame(
   ) %>% 
   filter(School != "") %>% #Drop blank td elements %>% 
   mutate(School = str_trim(str_extract(School, "^[^(]+"))) %>%  #Remove year and trailing space
-  arrange(School)
 
 #Sport Affiliations
 
