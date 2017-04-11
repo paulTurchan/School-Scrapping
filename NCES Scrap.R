@@ -22,7 +22,8 @@ for(i in 1:nrow(ipeds_ncaa_members_temp)){
   
   ipeds_ncaa_members_temp$IPEDS_ID[i] <- if(results == 1) ipeds_id else "Unknown"
   
-  print(paste("Loop ", i, " of ", nrow(ipeds_ncaa_members_temp), " (", round((100 * (i / nrow(ipeds_ncaa_members_temp))), digits = 3), "% complete) - ", if(results == 1) ipeds_id else "Unknown", sep = ''))
-  
+  print(paste("Loop ", i, " of ", nrow(ipeds_ncaa_members_temp), " (", round((100 * (i / nrow(ipeds_ncaa_members_temp))), digits = 3), "% complete) - ", if(results == 1) ipeds_id else "Unknown", " (", ipeds_ncaa_members_temp$School[i],")", sep = ''))
   
 }
+
+print(paste("Finished with a ", round(100 * sum(ipeds_ncaa_members_temp$IPEDS_ID != 'Unknown') / nrow(ipeds_ncaa_members_temp), digits = 3), "% success rate.", sep = ''))
