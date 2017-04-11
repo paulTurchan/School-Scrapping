@@ -4,6 +4,9 @@ library(stringr)
 library(jsonlite)
 library(httr)
 library(fuzzyjoin)
+library(urltools)
+
+str_replace()
 
 #IPEDS
 GET("https://nces.ed.gov/ipeds/datacenter/data/HD2015.zip", write_disk("ipeds.zip", overwrite=TRUE), progress()) #Download and write IPEDS (institutional characteristics) data
@@ -18,7 +21,12 @@ aau_members <- data.frame(
     html_text()
   ) %>% 
   filter(School != "") %>% #Drop blank td elements %>% 
-  mutate(School = str_trim(str_extract(School, "^[^(]+"))) %>%  #Remove year and trailing space
+  mutate(School = str_trim(str_extract(School, "^[^(]+"))) #Remove year and trailing space
+
+ipeds_aau_members <- aau_members %>%
+  left_join(ipeds, by = c("School" = "School")) %>% 
+  arrange(IPEDS_ID)
+write.csv(ipeds_aau_members, file = "Association of American Universities with IPED IDs.csv", row.names = F)
 
 #Sport Affiliations
 
@@ -30,7 +38,8 @@ ncaa_members <- read_html("http://web1.ncaa.org/onlineDir/exec2/divisionListing?
 ncaa_members <- ncaa_members[[1]] %>% #Transform scrap to data frame
   dplyr::rename(School = Institution) %>% 
   filter(!(School %in% c("1 - DI CA Test", "2 - DII CA Test", "3 - DIII CA Test"))) %>% #Drop test records
-  select(-State, -`Reclass Division`) %>% 
+  select(-State, -`Reclass Division`) %>%
+  mutate(School = str_trim(str_extract(School, "^[^(]+"))) %>%  #Remove year and trailing space
   arrange(School)
 
 ncaa_conferences <- ncaa_members %>%
@@ -38,6 +47,11 @@ ncaa_conferences <- ncaa_members %>%
   group_by(Conference, Division) %>% 
   summarise(Count = n()) %>% 
   arrange(Conference)
+
+ipeds_ncaa_members <- ncaa_members %>%
+  left_join(ipeds, by = c("School" = "School")) %>% 
+  arrange(IPEDS_ID)
+write.csv(ipeds_ncaa_members, file = "National Collegiate Athletic Association (NCAA) Members with IPED IDs.csv", row.names = F)
 
 #NAIA Members
 naia_translation <- data.frame(
