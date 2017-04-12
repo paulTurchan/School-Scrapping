@@ -1,5 +1,9 @@
 ipeds_ncaa_members_temp <- ipeds_ncaa_members %>% filter(is.na(IPEDS_ID))
 
+t1 <- Sys.time()
+
+print(paste("Started at:", t1))
+
 for(i in 1:nrow(ipeds_ncaa_members_temp)){
   
   #Parse current URL
@@ -18,7 +22,7 @@ for(i in 1:nrow(ipeds_ncaa_members_temp)){
     html_attr("href")
   
   #Strip out IPEDS ID
-  ipeds_id <- str_sub(str_replace_all(ipeds_id,"^[^=]+=",""), 1, 6) #Needs more robust solution
+  ipeds_id <- str_extract(ipeds_id, "(?<=ID=)[0-9]*")
   
   ipeds_ncaa_members_temp$IPEDS_ID[i] <- if(results == 1) ipeds_id else "Unknown"
   
@@ -26,4 +30,4 @@ for(i in 1:nrow(ipeds_ncaa_members_temp)){
   
 }
 
-print(paste("Finished with a ", round(100 * sum(ipeds_ncaa_members_temp$IPEDS_ID != 'Unknown') / nrow(ipeds_ncaa_members_temp), digits = 3), "% success rate.", sep = ''))
+print(paste("Finished with a ", round(100 * sum(ipeds_ncaa_members_temp$IPEDS_ID != 'Unknown') / nrow(ipeds_ncaa_members_temp), digits = 3), "% success rate. ", Sys.time() - t1, sep = ''))

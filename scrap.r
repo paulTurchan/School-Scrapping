@@ -6,8 +6,6 @@ library(httr)
 library(fuzzyjoin)
 library(urltools)
 
-str_replace()
-
 #IPEDS
 GET("https://nces.ed.gov/ipeds/datacenter/data/HD2015.zip", write_disk("ipeds.zip", overwrite=TRUE), progress()) #Download and write IPEDS (institutional characteristics) data
 ipeds <- read.csv(unzip("ipeds.zip")[1], stringsAsFactors = F) %>%
@@ -26,7 +24,6 @@ aau_members <- data.frame(
 ipeds_aau_members <- aau_members %>%
   left_join(ipeds, by = c("School" = "School")) %>% 
   arrange(IPEDS_ID)
-write.csv(ipeds_aau_members, file = "Association of American Universities with IPED IDs.csv", row.names = F)
 
 #Sport Affiliations
 
